@@ -27,9 +27,9 @@ async def process_incoming_message(
         context: telegram.ext.ContextTypes.DEFAULT_TYPE
 ):
     error, yandex_search_results_xml = yandex_search(update.message.text)
-    results = parse_results(yandex_search_results_xml)
+    query, results = parse_results(yandex_search_results_xml)
 
-    text_response = ""
+    text_response = "<i>{}</i>:\n\n".format(query)
 
     for result in results:
         text_response += '<b>{}</b>'.format(
@@ -73,7 +73,7 @@ def parse_results(xml):
                 'text': text
             })
 
-    return results
+    return soup.find('query').text, results
 
 
 def yandex_search(query):
