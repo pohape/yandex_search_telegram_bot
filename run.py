@@ -32,16 +32,22 @@ async def process_incoming_message(
     text_response = ""
 
     for result in results:
-        text_response += result['title']
+        text_response += '<b>{}</b>'.format(
+            result['title'])
         text_response += "\n"
-        text_response += result['text']
-        text_response += "\n"
-        text_response += result['domain']
+        if len(result['text']) > 0:
+            text_response += result['text']
+            text_response += "\n"
+        text_response += '<a href="{}">{}</a>'.format(
+            result['url'],
+            result['domain']
+        )
         text_response += "\n\n"
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=text_response
+        text=text_response,
+        parse_mode=telegram.constants.ParseMode.HTML
     )
 
 
