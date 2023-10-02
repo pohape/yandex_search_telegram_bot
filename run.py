@@ -27,7 +27,30 @@ async def process_incoming_message(
         context: telegram.ext.ContextTypes.DEFAULT_TYPE
 ):
     error, yandex_search_results_xml = yandex_search(update.message.text)
-    query, results = parse_results(yandex_search_results_xml)
+
+    if error is not None:
+        print(error)
+
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Search error: " + error,
+            parse_mode=telegram.constants.ParseMode.HTML
+        )
+
+        return None
+
+    error, query, results = parse_results(yandex_search_results_xml)
+
+    if error is not None:
+        print(error)
+
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Parse error: " + error,
+            parse_mode=telegram.constants.ParseMode.HTML
+        )
+
+        return None
 
     text_response = "<i>{}</i>:\n\n".format(query)
 
@@ -53,6 +76,10 @@ async def process_incoming_message(
 
 def parse_results(xml):
     soup = BeautifulSoup(xml, 'xml')
+    error = soup.find('error')
+
+    if error is not None:
+        return error.text, None, None
 
     docs = soup.find_all('doc')
     results = []
@@ -73,11 +100,11 @@ def parse_results(xml):
                 'text': text
             })
 
-    return soup.find('query').text, results
+    return None, soup.find('query').text, results
 
 
 def yandex_search(query):
-    url = "https://yandex.ru/search/xml?folderid={}&apikey={}&query={}".format(
+    url = "https://yandex1.ru/search/xml?folderid={}&apikey={}&query={}".format(
         config.yandex_folder_id,
         config.yandex_api_token,
         query
@@ -125,4 +152,12 @@ if __name__ == '__main__':
     application.add_handler(start_handler)
     application.add_handler(incoming_message_handler)
 
-    application.run_polling()
+    while True:
+        try:
+            application.run_polling()
+            break
+        except telegram.error.InvalidToken:
+            print("Telegram invalid token: " + config.telegram_token)
+            quit()
+        except telegram.error.TimedOut:
+            print("Telegram server connection time out. Trying again...")
