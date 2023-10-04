@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import re
 
 
 def download(url):
@@ -21,7 +22,8 @@ def download(url):
 
 
 def get_clean_text(html: str):
-    content = BeautifulSoup(html, "html.parser").text
+    content = BeautifulSoup(html, "lxml").text
+    content = re.sub(re.compile('<.*?>'), '', content)
 
     while content.find('\n\n') > -1:
         content = content.replace('\n\n', '\n')
