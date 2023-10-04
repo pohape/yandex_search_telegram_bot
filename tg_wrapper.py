@@ -1,5 +1,6 @@
 import json
 import telegram
+import page_helper
 
 from data_manager import DataManager
 from yandex_wrapper import YandexWrapper
@@ -60,14 +61,37 @@ class TgWrapper:
 
                 return None
             else:
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text=json.dumps(
-                        last_results[int(msg) - 1],
-                        ensure_ascii=False
-                    ),
-                    parse_mode=telegram.constants.ParseMode.HTML
-                )
+                url = last_results[int(msg) - 1]['url']
+                error, content = page_helper.download_and_parse_clean(url)
+
+                if error is not None:
+                    await context.bot.send_message(
+                        chat_id=user_id,
+                        text="Could not download and parse: {}".format(url),
+                        parse_mode=telegram.constants.ParseMode.HTML
+                    )
+
+                    return None
+
+                if len(content) < 100:
+                    await context.bot.send_message(
+                        chat_id=user_id,
+                        text="Could not download and parse: {}".format(url),
+                        parse_mode=telegram.constants.ParseMode.HTML
+                    )
+
+                    return None
+
+                max = 2000
+                messages = [content[y-max:y]
+                            for y in range(max, len(content)+max, max)]
+
+                for message in messages:
+                    await context.bot.send_message(
+                        chat_id=user_id,
+                        text=message,
+                        parse_mode=telegram.constants.ParseMode.HTML
+                    )
 
                 return None
         else:

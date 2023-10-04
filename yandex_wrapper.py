@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-import requests
+import page_helper
 
 
 class YandexWrapper:
@@ -44,7 +44,7 @@ class YandexWrapper:
             query
         )
 
-        error, response_xml = self.download(url)
+        error, response_xml = page_helper.download(url)
 
         if error is not None:
             print(error)
@@ -52,20 +52,3 @@ class YandexWrapper:
             return error, []
 
         return error, response_xml
-
-    def download(self, url):
-        error = None
-
-        try:
-            response = requests.get(url)
-            response_text = response.text
-
-            if response.status_code != 200:
-                error = "Something went wrong, got status code {}".format(
-                    response.status_code
-                )
-        except requests.RequestException as e:
-            error = "Could not download: {}".format(e)
-            response_text = None
-
-        return error, response_text
