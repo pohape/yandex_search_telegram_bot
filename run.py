@@ -1,6 +1,7 @@
 import logging
 import telegram.ext
 import config
+from data_manager import DataManager
 from tg_wrapper import TgWrapper
 from yandex_wrapper import YandexWrapper
 
@@ -11,18 +12,20 @@ logging.basicConfig(
 )
 
 if __name__ == '__main__':
+    data_manager = DataManager()
+    yandex_wrapper = YandexWrapper(
+        folder_id=config.yandex_folder_id,
+        api_token=config.yandex_api_token
+    )
+
     while True:
         tg_wrapper = None
 
         try:
-            yandex_wrapper = YandexWrapper(
-                folder_id=config.yandex_folder_id,
-                api_token=config.yandex_api_token
-            )
-
             tg_wrapper = TgWrapper(
                 token=config.telegram_token,
-                yandex_wrapper=yandex_wrapper
+                yandex_wrapper=yandex_wrapper,
+                data_manager=data_manager
             )
 
             break

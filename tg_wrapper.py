@@ -1,8 +1,17 @@
 import telegram
 
+from data_manager import DataManager
+from yandex_wrapper import YandexWrapper
+
 
 class TgWrapper:
-    def __init__(self, token: str, yandex_wrapper):
+    def __init__(
+        self,
+        token: str,
+        yandex_wrapper: YandexWrapper,
+        data_manager: DataManager
+    ):
+        self.data_manager = data_manager
         self.yandex_wrapper = yandex_wrapper
         application = telegram.ext.ApplicationBuilder().token(token).build()
 
@@ -55,20 +64,29 @@ class TgWrapper:
 
             return None
 
+        self.data_manager.set_user_last_search_results(
+            user_id=update.effective_user.id,
+            search_results=results
+        )
+
         text_response = "<i>{}</i>:\n\n".format(query)
+        result_num = 0
 
         for result in results:
-            text_response += '<b>{}</b>'.format(
-                result['title'])
-            text_response += "\n"
+            result_num += 1
+            text_response += '<b>{}. {}</b>\n'.format(
+                result_num,
+                result['title']
+            )
+
             if len(result['text']) > 0:
                 text_response += result['text']
                 text_response += "\n"
-            text_response += '<a href="{}">{}</a>'.format(
+
+            text_response += '<a href="{}">{}</a>\n\n'.format(
                 result['url'],
                 result['domain']
             )
-            text_response += "\n\n"
 
         while True:
             try:
