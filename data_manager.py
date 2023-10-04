@@ -18,7 +18,7 @@ class DataManager:
             with open(user_filepath, mode="r") as f:
                 file_content = f.readlines()
 
-                return json.loads(file_content)
+                return json.loads(file_content[0])
 
         return None
 
